@@ -852,31 +852,35 @@ document.querySelectorAll('.card').forEach(card => {
 loadState();
 
 function sendViaEmail() {
-  var rows = [];
+  var lines = [];
   document.querySelectorAll('.card').forEach(function(card) {
     var num  = card.dataset.card;
     var isA  = card.querySelector('.check-opt.approve input').checked;
     var isE  = card.querySelector('.check-opt.edits input').checked;
     var note = card.querySelector('textarea').value.trim();
-    var st   = isA ? '✓ Approved' : isE ? '✗ Needs Edits' : '⏳ Pending Review';
-    var line = num + '. ' + cardTitles[num] + '%0D%0A   Status: ' + st;
-    if (note) line += '%0D%0A   Notes: ' + encodeURIComponent(note);
-    rows.push(line);
+    var st   = isA ? 'Approved' : isE ? 'Needs Edits' : 'Pending Review';
+    var title = cardTitles[num] || ('Card ' + num);
+    var line  = num + '. ' + title + '\n   Status: ' + st;
+    if (note) line += '\n   Notes: ' + note;
+    lines.push(line);
   });
 
   var approved = document.querySelectorAll('.check-opt.approve input:checked').length;
   var edits    = document.querySelectorAll('.check-opt.edits input:checked').length;
-  var pending  = 4 - approved - edits;
+  var pending  = TOTAL - approved - edits;
 
-  var subject = encodeURIComponent('Content Review Feedback — The Clarity Way MD');
-  var body = 'Hi Anjelin,%0D%0A%0D%0AHere is my feedback on the content review:%0D%0A%0D%0A'
-    + '— Approved: ' + approved + '%0D%0A'
-    + '— Needs Edits: ' + edits + '%0D%0A'
-    + '— Pending: ' + pending + '%0D%0A%0D%0A'
-    + rows.join('%0D%0A%0D%0A')
-    + '%0D%0A%0D%0AThanks!';
+  var body =
+    'Hi Anjelin,\n\n' +
+    'Here is my content review feedback:\n\n' +
+    'Approved: ' + approved + '  |  Needs Edits: ' + edits + '  |  Pending: ' + pending + '\n\n' +
+    lines.join('\n\n') +
+    '\n\nThanks!';
 
-  window.location.href = 'mailto:anjelin@ktlystconsulting.com?subject=' + subject + '&body=' + body;
+  var mailto = 'mailto:anjelin@ktlystconsulting.com' +
+    '?subject=' + encodeURIComponent('Content Review Feedback - The Clarity Way MD') +
+    '&body='    + encodeURIComponent(body);
+
+  window.location.href = mailto;
 }
 
 </script>
