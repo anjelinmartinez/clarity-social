@@ -773,10 +773,10 @@
 <script>
 const TOTAL = 4;
 const cardTitles = {
-  1: '01 — GLP-1 Isn't the Fix Carousel',
-  2: '02 — Hot Take Carousel',
-  3: '03 — Performance Mediocrity Carousel',
-  4: '04 — Quotes Response: It's a Signal, Not a Failure'
+  '1': '01 - GLP-1 Is Not the Fix Carousel',
+  '2': '02 - Hot Take Carousel',
+  '3': '03 - Performance Mediocrity Carousel',
+  '4': '04 - Quotes Response: It is a Signal, Not a Failure'
 };
 
 const STORAGE_KEY = 'claritywaymd_review_state';
@@ -852,35 +852,39 @@ document.querySelectorAll('.card').forEach(card => {
 loadState();
 
 function sendViaEmail() {
-  var lines = [];
-  document.querySelectorAll('.card').forEach(function(card) {
-    var num  = card.dataset.card;
-    var isA  = card.querySelector('.check-opt.approve input').checked;
-    var isE  = card.querySelector('.check-opt.edits input').checked;
-    var note = card.querySelector('textarea').value.trim();
-    var st   = isA ? 'Approved' : isE ? 'Needs Edits' : 'Pending Review';
-    var title = cardTitles[num] || ('Card ' + num);
-    var line  = num + '. ' + title + '\n   Status: ' + st;
-    if (note) line += '\n   Notes: ' + note;
-    lines.push(line);
-  });
+  try {
+    var lines = [];
+    document.querySelectorAll('.card').forEach(function(card) {
+      var num  = String(card.dataset.card);
+      var isA  = card.querySelector('.check-opt.approve input').checked;
+      var isE  = card.querySelector('.check-opt.edits input').checked;
+      var note = card.querySelector('textarea').value.trim();
+      var st   = isA ? 'Approved' : isE ? 'Needs Edits' : 'Pending Review';
+      var title = cardTitles[num] || ('Card ' + num);
+      var line  = num + '. ' + title + '\n   Status: ' + st;
+      if (note) line += '\n   Notes: ' + note;
+      lines.push(line);
+    });
 
-  var approved = document.querySelectorAll('.check-opt.approve input:checked').length;
-  var edits    = document.querySelectorAll('.check-opt.edits input:checked').length;
-  var pending  = TOTAL - approved - edits;
+    var approved = document.querySelectorAll('.check-opt.approve input:checked').length;
+    var edits    = document.querySelectorAll('.check-opt.edits input:checked').length;
+    var pending  = TOTAL - approved - edits;
 
-  var body =
-    'Hi Anjelin,\n\n' +
-    'Here is my content review feedback:\n\n' +
-    'Approved: ' + approved + '  |  Needs Edits: ' + edits + '  |  Pending: ' + pending + '\n\n' +
-    lines.join('\n\n') +
-    '\n\nThanks!';
+    var body =
+      'Hi Anjelin,\n\n' +
+      'Here is my content review feedback:\n\n' +
+      'Approved: ' + approved + ' | Needs Edits: ' + edits + ' | Pending: ' + pending + '\n\n' +
+      lines.join('\n\n') +
+      '\n\nThanks!';
 
-  var mailto = 'mailto:anjelin@ktlystconsulting.com' +
-    '?subject=' + encodeURIComponent('Content Review Feedback - The Clarity Way MD') +
-    '&body='    + encodeURIComponent(body);
+    var mailto = 'mailto:anjelin@ktlystconsulting.com' +
+      '?subject=' + encodeURIComponent('Content Review Feedback - The Clarity Way MD') +
+      '&body='    + encodeURIComponent(body);
 
-  window.location.href = mailto;
+    window.location.href = mailto;
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
 }
 
 </script>
