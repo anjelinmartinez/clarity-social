@@ -316,8 +316,35 @@
     color: rgba(255,255,255,0.6);
     min-height: 20px;
   }
-  .submit-status.success { color: #81c784; }
-  .submit-status.error   { color: #ef9a9a; }
+  .submit-status.error { color: #ef9a9a; }
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 0.5s ease;
+  }
+  .success-screen.show { display: flex; }
+  .success-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(184,154,94,0.15);
+    border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .success-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-style: italic;
+    color: var(--gold);
+  }
+  .success-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.7;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .pdf-btn:hover { background: var(--gold-lt); }
 
 
@@ -825,10 +852,9 @@ document.querySelectorAll('.card').forEach(card => {
 loadState();
 
 function submitFeedback() {
-  const btn = document.querySelector('.submit-btn');
+  const btn = document.getElementById('submit-btn');
   const status = document.getElementById('submit-status');
 
-  // Build feedback summary
   const rows = [];
   document.querySelectorAll('.card').forEach(card => {
     const num  = card.dataset.card;
@@ -846,16 +872,15 @@ function submitFeedback() {
   const approved = rows.filter(r => r.status === 'Approved').length;
   const edits    = rows.filter(r => r.status === 'Needs Edits').length;
   const pending  = rows.filter(r => r.status === 'Pending Review').length;
-  const summary  = 'Approved: ' + approved + '  |  Needs Edits: ' + edits + '  |  Pending: ' + pending;
 
   btn.disabled = true;
-  status.textContent = 'Sending…';
+  btn.textContent = 'Sending…';
+  status.textContent = '';
   status.className = 'submit-status';
 
-  // Use FormData instead of JSON — more reliable with Formspree on static sites
   const fd = new FormData();
   fd.append('_subject', 'Content Review Feedback — The Clarity Way MD');
-  fd.append('summary', summary);
+  fd.append('summary', 'Approved: ' + approved + '  |  Needs Edits: ' + edits + '  |  Pending: ' + pending);
   fd.append('feedback', lines);
   fd.append('submitted_at', new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' }));
 
@@ -864,21 +889,17 @@ function submitFeedback() {
     headers: { 'Accept': 'application/json' },
     body: fd
   })
-  .then(r => {
-    if (!r.ok) return r.json().then(d => { throw new Error(d.error || 'HTTP ' + r.status); });
-    return r.json();
-  })
+  .then(r => r.ok ? r.json() : r.json().then(d => { throw new Error(d.error || 'HTTP ' + r.status); }))
   .then(data => {
     if (data.ok) {
-      status.textContent = '\u2713 Feedback sent successfully! Thank you.';
-      status.className = 'submit-status success';
-      btn.textContent = 'Feedback Sent';
+      document.getElementById('form-screen').style.display = 'none';
+      document.getElementById('success-screen').classList.add('show');
     } else {
       throw new Error(data.error || 'Unknown error');
     }
   })
   .catch(err => {
-    status.textContent = 'Error: ' + err.message + ' — please email anjelin@ktlystconsulting.com directly.';
+    status.textContent = 'Something went wrong: ' + err.message + ' — please email anjelin@ktlystconsulting.com';
     status.className = 'submit-status error';
     btn.disabled = false;
     btn.textContent = 'Try Again';
@@ -888,10 +909,17 @@ function submitFeedback() {
 </script>
 
 <div class="bottom-cta">
-  <h3>Send Feedback to Anjelin</h3>
-  <p>Once you've reviewed everything, hit the button below.<br>Your approvals and notes will be sent directly to Anjelin.</p>
-  <button class="submit-btn" onclick="submitFeedback()">Send Feedback</button>
-  <div class="submit-status" id="submit-status"></div>
+  <div id="form-screen">
+    <h3>Send Feedback to Anjelin</h3>
+    <p>Once you've reviewed everything, hit the button below.<br>Your approvals and notes will be sent directly to Anjelin.</p>
+    <button class="submit-btn" id="submit-btn" onclick="submitFeedback()">Send Feedback</button>
+    <div class="submit-status" id="submit-status"></div>
+  </div>
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Feedback Sent!</div>
+    <p class="success-sub">Anjelin has been notified.<br>You're all done — thank you!</p>
+  </div>
 </div>
 </body>
 </html>
