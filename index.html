@@ -876,18 +876,20 @@ function submitFeedback() {
   btn.disabled = true;
   btn.textContent = 'Sending…';
   status.textContent = '';
-  status.className = 'submit-status';
-
-  const fd = new FormData();
-  fd.append('_subject', 'Content Review Feedback — The Clarity Way MD');
-  fd.append('summary', 'Approved: ' + approved + '  |  Needs Edits: ' + edits + '  |  Pending: ' + pending);
-  fd.append('feedback', lines);
-  fd.append('submitted_at', new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' }));
 
   fetch('https://formspree.io/f/xbdzzjpj', {
     method: 'POST',
-    headers: { 'Accept': 'application/json' },
-    body: fd
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Origin': 'https://anjelinmartinez.github.io'
+    },
+    body: JSON.stringify({
+      _subject: 'Content Review Feedback — The Clarity Way MD',
+      summary: 'Approved: ' + approved + ' | Needs Edits: ' + edits + ' | Pending: ' + pending,
+      feedback: lines,
+      submitted_at: new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })
+    })
   })
   .then(r => r.ok ? r.json() : r.json().then(d => { throw new Error(d.error || 'HTTP ' + r.status); }))
   .then(data => {
@@ -895,11 +897,11 @@ function submitFeedback() {
       document.getElementById('form-screen').style.display = 'none';
       document.getElementById('success-screen').classList.add('show');
     } else {
-      throw new Error(data.error || 'Unknown error');
+      throw new Error(data.errors ? data.errors.map(e => e.message).join(', ') : 'Unknown error');
     }
   })
   .catch(err => {
-    status.textContent = 'Something went wrong: ' + err.message + ' — please email anjelin@ktlystconsulting.com';
+    status.textContent = 'Error: ' + err.message;
     status.className = 'submit-status error';
     btn.disabled = false;
     btn.textContent = 'Try Again';
