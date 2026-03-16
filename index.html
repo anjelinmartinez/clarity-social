@@ -870,11 +870,20 @@ function prepareFeedback() {
   const edits    = rows.filter(r => r.status === 'Needs Edits').length;
   const pending  = rows.filter(r => r.status === 'Pending Review').length;
 
-  document.getElementById('field-summary').value =
-    'Approved: ' + approved + ' | Needs Edits: ' + edits + ' | Pending: ' + pending;
-  document.getElementById('field-feedback').value = lines;
-  document.getElementById('field-date').value =
-    new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' });
+  var summaryVal = 'Approved: ' + approved + ' | Needs Edits: ' + edits + ' | Pending: ' + pending;
+  var feedbackVal = lines;
+  var dateVal = new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' });
+
+  var s = document.getElementById('field-summary');
+  var f = document.getElementById('field-feedback');
+  var d = document.getElementById('field-date');
+
+  s.value = summaryVal;
+  f.value = feedbackVal;
+  d.value = dateVal;
+
+  // Small safeguard — verify fields populated before allowing submit
+  return s.value.length > 0;
 }
 
 </script>
@@ -882,12 +891,12 @@ function prepareFeedback() {
 <div class="bottom-cta">
   <h3>Send Feedback to Anjelin</h3>
   <p>Once you've reviewed everything, hit the button below.<br>Your approvals and notes will be sent directly to Anjelin.</p>
-  <form action="https://formspree.io/f/xbdzzjpj" method="POST" onsubmit="prepareFeedback()">
+  <form action="https://formspree.io/f/xbdzzjpj" method="POST" id="feedback-form">
     <input type="hidden" name="_subject" value="Content Review Feedback — The Clarity Way MD">
     <input type="hidden" name="summary" id="field-summary">
     <input type="hidden" name="feedback" id="field-feedback">
     <input type="hidden" name="submitted_at" id="field-date">
-    <button type="submit" class="submit-btn">Send Feedback</button>
+    <button type="submit" class="submit-btn" onclick="prepareFeedback()">Send Feedback</button>
   </form>
 </div>
 </body>
