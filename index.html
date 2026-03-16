@@ -851,10 +851,7 @@ document.querySelectorAll('.card').forEach(card => {
 // Restore state on load
 loadState();
 
-function submitFeedback() {
-  const btn = document.getElementById('submit-btn');
-  const status = document.getElementById('submit-status');
-
+function prepareFeedback() {
   const rows = [];
   document.querySelectorAll('.card').forEach(card => {
     const num  = card.dataset.card;
@@ -873,55 +870,25 @@ function submitFeedback() {
   const edits    = rows.filter(r => r.status === 'Needs Edits').length;
   const pending  = rows.filter(r => r.status === 'Pending Review').length;
 
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
-  status.textContent = '';
-
-  fetch('https://formspree.io/f/xbdzzjpj', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Origin': 'https://anjelinmartinez.github.io'
-    },
-    body: JSON.stringify({
-      _subject: 'Content Review Feedback — The Clarity Way MD',
-      summary: 'Approved: ' + approved + ' | Needs Edits: ' + edits + ' | Pending: ' + pending,
-      feedback: lines,
-      submitted_at: new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })
-    })
-  })
-  .then(r => r.ok ? r.json() : r.json().then(d => { throw new Error(d.error || 'HTTP ' + r.status); }))
-  .then(data => {
-    if (data.ok) {
-      document.getElementById('form-screen').style.display = 'none';
-      document.getElementById('success-screen').classList.add('show');
-    } else {
-      throw new Error(data.errors ? data.errors.map(e => e.message).join(', ') : 'Unknown error');
-    }
-  })
-  .catch(err => {
-    status.textContent = 'Error: ' + err.message;
-    status.className = 'submit-status error';
-    btn.disabled = false;
-    btn.textContent = 'Try Again';
-  });
+  document.getElementById('field-summary').value =
+    'Approved: ' + approved + ' | Needs Edits: ' + edits + ' | Pending: ' + pending;
+  document.getElementById('field-feedback').value = lines;
+  document.getElementById('field-date').value =
+    new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' });
 }
 
 </script>
 
 <div class="bottom-cta">
-  <div id="form-screen">
-    <h3>Send Feedback to Anjelin</h3>
-    <p>Once you've reviewed everything, hit the button below.<br>Your approvals and notes will be sent directly to Anjelin.</p>
-    <button class="submit-btn" id="submit-btn" onclick="submitFeedback()">Send Feedback</button>
-    <div class="submit-status" id="submit-status"></div>
-  </div>
-  <div class="success-screen" id="success-screen">
-    <div class="success-icon">✓</div>
-    <div class="success-title">Feedback Sent!</div>
-    <p class="success-sub">Anjelin has been notified.<br>You're all done — thank you!</p>
-  </div>
+  <h3>Send Feedback to Anjelin</h3>
+  <p>Once you've reviewed everything, hit the button below.<br>Your approvals and notes will be sent directly to Anjelin.</p>
+  <form action="https://formspree.io/f/xbdzzjpj" method="POST" onsubmit="prepareFeedback()">
+    <input type="hidden" name="_subject" value="Content Review Feedback — The Clarity Way MD">
+    <input type="hidden" name="summary" id="field-summary">
+    <input type="hidden" name="feedback" id="field-feedback">
+    <input type="hidden" name="submitted_at" id="field-date">
+    <button type="submit" class="submit-btn">Send Feedback</button>
+  </form>
 </div>
 </body>
 </html>
